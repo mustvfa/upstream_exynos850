@@ -1173,16 +1173,6 @@ static int create_flash_sysfs(struct s2mu106_fled_data *fled_data)
 	int err = -ENODEV;
 	struct device *flash_dev = fled_data->flash_dev;
 
-	if (IS_ERR_OR_NULL(camera_class)) {
-		pr_err("flash_sysfs: error, camera class not exist");
-		return -ENODEV;
-	}
-
-	flash_dev = device_create(camera_class, NULL, 0, NULL, "flash");
-	if (IS_ERR(flash_dev)) {
-		pr_err("flash_sysfs: failed to create device(flash)\n");
-		return -ENODEV;
-	}
 	err = device_create_file(flash_dev, &dev_attr_rear_flash);
 	if (unlikely(err < 0)) {
 		pr_err("flash_sysfs: failed to create device file, %s\n",
@@ -1281,8 +1271,6 @@ static int s2mu106_led_remove(struct platform_device *pdev)
 
 	device_remove_file(fled_data->flash_dev, &dev_attr_rear_flash);
 	device_remove_file(fled_data->flash_dev, &dev_attr_rear_flash2);
-	device_destroy(camera_class, 0);
-	class_destroy(camera_class);
 	mutex_destroy(&fled_data->lock);
 	return 0;
 }
