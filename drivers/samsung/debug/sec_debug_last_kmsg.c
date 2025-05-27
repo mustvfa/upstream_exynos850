@@ -40,7 +40,7 @@ void secdbg_lkmg_store(unsigned char *head_ptr, unsigned char *curr_ptr, size_t 
 	if (*((unsigned long long *)magickey_addr) == SEC_LKMSG_MAGICKEY) {
 		pr_info("%s: sec_log buffer is full\n", __func__);
 
-		last_kmsg_size = (size_t)SZ_2M;
+		last_kmsg_size = (size_t)SZ_8M;
 		last_kmsg_buffer = kzalloc(last_kmsg_size, GFP_NOWAIT);
 
 		if (last_kmsg_size && last_kmsg_buffer) {
