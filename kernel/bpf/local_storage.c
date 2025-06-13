@@ -215,7 +215,7 @@ static struct bpf_map *cgroup_storage_map_alloc(union bpf_attr *attr)
 	if (!map)
 		return ERR_PTR(-ENOMEM);
 
-	map->map.pages = round_up(sizeof(struct bpf_cgroup_storage_map),
+	map->map.memory.pages = round_up(sizeof(struct bpf_cgroup_storage_map),
 				  PAGE_SIZE) >> PAGE_SHIFT;
 
 	/* copy mandatory map attributes */
