@@ -1685,10 +1685,9 @@ static struct bpf_map *sock_map_alloc(union bpf_attr *attr)
 	if (cost >= U32_MAX - PAGE_SIZE)
 		goto free_stab;
 
-	stab->map.memory.pages = round_up(cost, PAGE_SIZE) >> PAGE_SHIFT;
-
 	/* if map size is larger than memlock limit, reject it early */
-	err = bpf_map_precharge_memlock(stab->map.memory.pages);
+	err = bpf_map_charge_init(stab->map.memory,
+							  round_up(cost, PAGE_SIZE) >> PAGE_SHIFT);
 	if (err)
 		goto free_stab;
 
@@ -1697,9 +1696,11 @@ static struct bpf_map *sock_map_alloc(union bpf_attr *attr)
 					    sizeof(struct sock *),
 					    stab->map.numa_node);
 	if (!stab->sock_map)
-		goto free_stab;
+		goto free_charge;
 
 	return &stab->map;
+free_charge:
+	bpf_map_charge_finish(stab->map.memory);
 free_stab:
 	kfree(stab);
 	return ERR_PTR(err);
@@ -2213,8 +2214,8 @@ static struct bpf_map *sock_hash_alloc(union bpf_attr *attr)
 	if (cost >= U32_MAX - PAGE_SIZE)
 		goto free_htab;
 
-	htab->map.memory.pages = round_up(cost, PAGE_SIZE) >> PAGE_SHIFT;
-	err = bpf_map_precharge_memlock(htab->map.memory.pages);
+	err = bpf_map_charge_init(htab->map.memory,
+							  round_up(cost, PAGE_SIZE) >> PAGE_SHIFT);
 	if (err)
 		goto free_htab;
 
@@ -2223,7 +2224,7 @@ static struct bpf_map *sock_hash_alloc(union bpf_attr *attr)
 				htab->n_buckets * sizeof(struct bucket),
 				htab->map.numa_node);
 	if (!htab->buckets)
-		goto free_htab;
+		goto free_charge;
 
 	for (i = 0; i < htab->n_buckets; i++) {
 		INIT_HLIST_HEAD(&htab->buckets[i].head);
@@ -2231,6 +2232,8 @@ static struct bpf_map *sock_hash_alloc(union bpf_attr *attr)
 	}
 
 	return &htab->map;
+free_charge:
+	bpf_map_charge_finish(htab->map.memory);
 free_htab:
 	kfree(htab);
 	return ERR_PTR(err);
