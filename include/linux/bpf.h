@@ -690,6 +690,7 @@ int btf_struct_access(struct bpf_verifier_log *log,
 		      u32 *next_btf_id);
 u32 btf_resolve_helper_id(struct bpf_verifier_log *log, void *, int);
 
+const struct bpf_func_proto *bpf_base_func_proto(enum bpf_func_id func_id);
 #else /* !CONFIG_BPF_SYSCALL */
 static inline struct bpf_prog *bpf_prog_get(u32 ufd)
 {
@@ -813,6 +814,11 @@ static inline bool unprivileged_ebpf_enabled(void)
 	return false;
 }
 
+static inline const struct bpf_func_proto *
+bpf_base_func_proto(enum bpf_func_id func_id)
+{
+	return NULL;
+}
 #endif /* CONFIG_BPF_SYSCALL */
 
 static inline struct bpf_prog *bpf_prog_get_type(u32 ufd,
@@ -997,6 +1003,7 @@ extern const struct bpf_func_proto bpf_get_socket_ptr_cookie_proto;
 /* Shared helpers among cBPF and eBPF. */
 void bpf_user_rnd_init_once(void);
 u64 bpf_user_rnd_u32(u64 r1, u64 r2, u64 r3, u64 r4, u64 r5);
+u64 bpf_get_raw_cpu_id(u64 r1, u64 r2, u64 r3, u64 r4, u64 r5);
 
 #if defined(CONFIG_NET)
 bool bpf_sock_common_is_valid_access(int off, int size,
