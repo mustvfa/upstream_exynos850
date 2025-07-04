@@ -349,6 +349,9 @@ static void __cqhci_enable(struct cqhci_host *cq_host)
 
 	cqhci_writel(cq_host, cqcfg, CQHCI_CFG);
 
+	if (cqhci_readl(cq_host, CQHCI_CTL) & CQHCI_HALT)
+		cqhci_writel(cq_host, 0, CQHCI_CTL);
+
 	ctl = cqhci_readl(cq_host, CQHCI_CTL);
 	ctl |= CQHCI_CLEAR_ALL_TASKS;
 	cqhci_writel(cq_host, ctl, CQHCI_CTL);
