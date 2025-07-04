@@ -370,7 +370,6 @@ static void ion_dma_buf_kunmap(struct dma_buf *dmabuf, unsigned long offset,
 		ion_buffer_kmap_put(buffer);
 		mutex_unlock(&buffer->lock);
 	}
-
 }
 
 static void *ion_dma_buf_vmap(struct dma_buf *dmabuf)
@@ -402,21 +401,15 @@ static int ion_dma_buf_begin_cpu_access(struct dma_buf *dmabuf,
 					enum dma_data_direction direction)
 {
 	struct ion_buffer *buffer = dmabuf->priv;
-	struct dma_buf_attachment *att;
+	struct ion_dma_buf_attachment *a;
 
-	/*
-	 * TODO: Move this elsewhere because we don't always need a vaddr
-	 */
-
-	mutex_lock(&dmabuf->lock);
-	list_for_each_entry(att, &dmabuf->attachments, node) {
-		struct sg_table *table = att->priv;
-
-		dma_sync_sg_for_cpu(att->dev, table->sgl, table->nents,
+	mutex_lock(&buffer->lock);
+	list_for_each_entry(a, &buffer->attachments, list) {
+		dma_sync_sg_for_cpu(a->dev, a->table->sgl, a->table->nents,
 				    direction);
 	}
-	mutex_unlock(&dmabuf->lock);
-	
+	mutex_unlock(&buffer->lock);
+
 	return 0;
 }
 
@@ -424,16 +417,14 @@ static int ion_dma_buf_end_cpu_access(struct dma_buf *dmabuf,
 				      enum dma_data_direction direction)
 {
 	struct ion_buffer *buffer = dmabuf->priv;
-	struct dma_buf_attachment *att;
+	struct ion_dma_buf_attachment *a;
 
-	mutex_lock(&dmabuf->lock);
-	list_for_each_entry(att, &dmabuf->attachments, node) {
-		struct sg_table *table = att->priv;
-
-		dma_sync_sg_for_device(att->dev, table->sgl, table->nents,
+	mutex_lock(&buffer->lock);
+	list_for_each_entry(a, &buffer->attachments, list) {
+		dma_sync_sg_for_device(a->dev, a->table->sgl, a->table->nents,
 				       direction);
 	}
-	mutex_unlock(&dmabuf->lock);
+	mutex_unlock(&buffer->lock);
 
 	return 0;
 }
