@@ -1986,7 +1986,6 @@ void xhci_event_ring_cleanup(struct xhci_hcd *xhci)
 
 void xhci_mem_cleanup(struct xhci_hcd *xhci)
 {
-	//struct device	*dev = xhci_to_hcd(xhci)->self.sysdev;
 	int i, j, num_ports;
 
 	cancel_delayed_work_sync(&xhci->cmd_timer);
@@ -2700,10 +2699,10 @@ int xhci_mem_init(struct xhci_hcd *xhci, gfp_t flags)
 	unsigned int	val, val2;
 	u64		val_64;
 	u32		page_size, temp;
+	int		i;
 #ifdef CONFIG_SND_EXYNOS_USB_AUDIO
 	struct xhci_segment	*seg;
 #endif
-	int		i;
 
 	INIT_LIST_HEAD(&xhci->cmd_list);
 
@@ -2824,6 +2823,7 @@ int xhci_mem_init(struct xhci_hcd *xhci, gfp_t flags)
 			"// Doorbell array is located at offset 0x%x"
 			" from cap regs base addr", val);
 	xhci->dba = (void __iomem *) xhci->cap_regs + val;
+	/* Set ir_set to interrupt register set 0 */
 #ifdef CONFIG_SND_EXYNOS_USB_AUDIO
 	xhci->ir_set_audio = &xhci->run_regs->ir_set[1];
 #endif
@@ -2836,6 +2836,7 @@ int xhci_mem_init(struct xhci_hcd *xhci, gfp_t flags)
 
 	if (xhci_check_trb_in_td_math(xhci) < 0)
 		goto fail;
+
 
 #ifdef CONFIG_SND_EXYNOS_USB_AUDIO
 	xhci->save_addr = dma_pre_alloc_coherent(xhci, sizeof(PAGE_SIZE), &dma,

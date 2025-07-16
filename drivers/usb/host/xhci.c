@@ -1736,7 +1736,7 @@ static int xhci_urb_dequeue(struct usb_hcd *hcd, struct urb *urb, int status)
 			goto done;
 		}
 		ep->ep_state |= EP_STOP_CMD_PENDING;
-#if !IS_ENABLED(CONFIG_USB_HOST_SAMSUNG_FEATURE)
+#if !defined(CONFIG_USB_HOST_SAMSUNG_FEATURE)
 		ep->stop_cmd_timer.expires = jiffies +
 			XHCI_STOP_EP_CMD_TIMEOUT * HZ;
 #else
@@ -2827,7 +2827,7 @@ static int xhci_configure_endpoint(struct xhci_hcd *xhci,
 				xhci->num_active_eps);
 		return -ENOMEM;
 	}
-	if ((xhci->quirks & XHCI_SW_BW_CHECKING) &&
+	if ((xhci->quirks & XHCI_SW_BW_CHECKING) && !ctx_change &&
 	    xhci_reserve_bandwidth(xhci, virt_dev, command->in_ctx)) {
 		if ((xhci->quirks & XHCI_EP_LIMIT_QUIRK))
 			xhci_free_host_resources(xhci, ctrl_ctx);
@@ -4273,8 +4273,10 @@ static int xhci_setup_device(struct usb_hcd *hcd, struct usb_device *udev,
 		mutex_unlock(&xhci->mutex);
 		ret = xhci_disable_slot(xhci, udev->slot_id);
 		xhci_free_virt_device(xhci, udev->slot_id);
-		if (!ret)
-			xhci_alloc_dev(hcd, udev);
+		if (!ret) {
+			if (xhci_alloc_dev(hcd, udev) == 1)
+				xhci_setup_addressable_virt_dev(xhci, udev);
+		}
 		kfree(command->completion);
 		kfree(command);
 		return -EPROTO;
@@ -5404,7 +5406,6 @@ int xhci_wake_lock(struct usb_hcd *hcd, int is_lock) {
 
 	return 0;
 }
-
 static phys_addr_t xhci_get_sec_event_ring_phys_addr(struct usb_hcd *hcd,
 	unsigned int intr_num, dma_addr_t *dma)
 {
@@ -5435,7 +5436,6 @@ static phys_addr_t xhci_get_sec_event_ring_phys_addr(struct usb_hcd *hcd,
 
 		return pa;
 	}
-
 	return 0;
 }
 
