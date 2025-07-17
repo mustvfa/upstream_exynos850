@@ -21,10 +21,6 @@
 #include <linux/sched.h>
 #include <linux/sched/user.h>
 
-#ifdef CONFIG_KDP
-#include <linux/kdp.h>
-#endif
-
 struct cred;
 struct inode;
 
@@ -159,12 +155,6 @@ struct cred {
 		int non_rcu;			/* Can we skip RCU deletion? */
 		struct rcu_head	rcu;		/* RCU deletion hook */
 	};
-#ifdef CONFIG_KDP
-	atomic_t *use_cnt;
-	struct task_struct *bp_task;
-	void *bp_pgd;
-	unsigned long long type;
-#endif
 } __randomize_layout;
 
 extern void __put_cred(struct cred *);
